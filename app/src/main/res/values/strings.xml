@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Ascend</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_priorities">Priorities</string>
+    <string name="nav_ghost">Ghost</string>
+    <string name="nav_rewards">Rewards</string>
+    <string name="nav_profile">Profile</string>
+    <string name="coach_title">Ascend Companion</string>
+    <string name="coach_subtitle">AI Focus Coach</string>
+    <string name="quick_add_task">Quick Add Task</string>
+    <string name="clear_sample_data">Clear Sample Data</string>
+</resources>

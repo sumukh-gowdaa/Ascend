@@ -1,0 +1,6 @@
+{
+  "name": "Ascend",
+  "description": "Midnight-purple offline-first productivity app with an interactive Eisenhower Matrix, Ghost Task Detector, streak rewards, and Ascend Companion AI Coach.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
