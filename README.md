@@ -1,22 +1,79 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# Ascend — Gamified AI LifeOS for Android
 
-# Run and deploy your AI Studio app
+**Ascend** is an offline-first, native Android personal productivity application ("LifeOS") built with **Kotlin**, **Jetpack Compose**, and **Firebase AI Logic (`gemini-3.8-flash`)**. It replaces guilt-driven task lists with personalized XP rewards, an Eisenhower Priority Matrix, a Ghost Task Detector for gentle reflection on procrastination, smart recurring reminders, and a context-aware Gemini AI Life Coach with live Google Calendar and Gmail tool integration.
 
-This contains everything you need to run your app locally.
+---
 
-View your app in AI Studio: https://ai.studio/apps/04d35a18-916e-43ec-9a63-34ddb108b9fc
+## Core Features
 
-## Run Locally
+- **Personalized Reward Zone & Onboarding Counseling:** Starts with a 4-question counseling flow (`hasCompletedRewardCounseling` via Jetpack DataStore) that captures your recharge preferences and XP budget, using either instant offline curation or **Gemini AI** to generate tailored, guilt-free rewards stored locally in Room.
+- **Eisenhower Priority Matrix & Task Management:** Organizes daily commitments into *Do First*, *Schedule*, *Delegate*, and *Eliminate* quadrants with real-time XP progression (`+20 XP` per task).
+- **Ghost Task Detector:** Automatically flags tasks postponed multiple times and surfaces them in a dedicated reflection view (*"It's too big"*, *"No time for it"*, *"Not important now"*) rather than marking them overdue.
+- **One-Time & Recurring Reminders with Notification Actions:** Uses `AlarmManager` (`setExactAndAllowWhileIdle`), `BOOT_COMPLETED` rescheduling, and Android 13+ notification permissions to deliver exact reminders with interactive **Complete (+20 XP)** and **Snooze 15m** notification buttons.
+- **Context-Aware AI Life Coach (Gemini Function Calling):** Integrates `gemini-3.8-flash` via Firebase AI Logic with native read-only OAuth scopes (`calendar.readonly` and `gmail.readonly`), allowing Gemini to invoke `getCalendarEvents` and `getRecentEmails` to answer questions using your live schedule and inbox.
 
-**Prerequisites:**  [Android Studio](https://developer.android.com/studio)
+---
 
+## System Architecture
 
-1. Open Android Studio
-2. Select **Open** and choose the directory containing this project
-3. Allow Android Studio to fix any incompatibilities as it imports the project.
-4. Create a file named `.env` in the project directory and set `GEMINI_API_KEY` in that file to your Gemini API key (see `.env.example` for an example)
-5. Remove this line from the app's `build.gradle.kts` file: `signingConfig = signingConfigs.getByName("debugConfig")`
-6. Run the app on an emulator or physical device
-7. If you have already published your app in AI Studio, please [request upload key reset](https://support.google.com/googleplay/android-developer/answer/9842756#zippy=%2Crequest-an-upload-key-reset) in Google Play Console.
+Ascend uses a **3-Layer Offline-First MVVM Architecture** with **Unidirectional Data Flow (UDF)** where the local Room SQLite database serves as the single source of truth:
+
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        1. PRESENTATION LAYER (UI)                       │
+│   Jetpack Compose Screens (Overview, Priorities, Ghost Tasks, Rewards,  │
+│   AI Coach, MCP Connections) + System Notifications (Complete / Snooze) │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ Observes StateFlow / Sends Events
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       2. STATE & LOGIC LAYER (MVVM)                     │
+│   ViewModels (Coroutine scopes, XP/Level math, Ghost Task rules,        │
+│   Eisenhower quadrant filtering, Counseling questionnaire state)        │
+└───────────────┬─────────────────────────────────────────┬───────────────┘
+                │ Local Read/Write (Flow)                 │ AI & Cloud Calls
+                ▼                                         ▼
+┌───────────────────────────────┐     ┌───────────────────────────────────┐
+│   3A. LOCAL DATA LAYER        │     │   3B. AI & CLOUD INTEGRATION      │
+│ • Room DB (Tasks, Rewards,    │     │ • Firebase Auth (Google Sign-In)  │
+│   Chat History)               │     │ • Firebase App Check (Security)   │
+│ • DataStore (Onboarding flags)│     │ • Gemini 3.8 Flash (AI Coach)     │
+│ • AlarmManager (Reminders)    │     │   └── Function Calling Tools:     │
+└───────────────────────────────┘     │       ├─► Google Calendar REST API│
+                                      │       └─► Gmail REST API          │
+                                      └───────────────────────────────────┘
+Tech Stack
+Language & Async: Kotlin, Coroutines, StateFlow
+
+UI: Jetpack Compose, Material 3
+
+Local Storage: Room (SQLite), Jetpack DataStore
+
+AI & Cloud: Firebase AI Logic (gemini-3.8-flash), Firebase Authentication, Firebase App Check
+
+Integrations & Background: Google Calendar API v3, Gmail API v1, Android AlarmManager, BroadcastReceiver
+Local Setup & Build Instructions
+Clone the repository:
+
+Bash
+git clone [https://github.com/sumukh-gowdaa/Ascend.git](https://github.com/sumukh-gowdaa/Ascend.git)
+cd Ascend
+Add Firebase & API Configuration:
+
+Place your Firebase Android configuration file at app/google-services.json (with your local debug.keystore SHA-1 registered in Firebase Console).
+
+Copy .env.example to .env in the project root and add your Gemini API key:
+
+Code snippet
+GEMINI_API_KEY=your_gemini_api_key_here
+Ensure a debug.keystore is present in the project root (or update signingConfigs in app/build.gradle.kts).
+
+Enable Google APIs & App Check:
+
+Enable Gmail API and Google Calendar API in Google Cloud Console and add your account under OAuth Test Users.
+
+Register your Logcat DebugAppCheckProvider UUID under Firebase Console > App Check.
+
+Build & Run:
+
+Open the project in Android Studio, sync Gradle, and run on an Android device (API 24+).
